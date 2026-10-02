@@ -44,7 +44,6 @@ const checkping = require('./checkping.js');
 const serverinfo = require('./server.js');
 const slowmode = require('./slowmode.js');
 const level = require('./levelv1.js');
-const level = require('./level.js');  
 const levelconfig = require('./levelconfig.js');
 const { handleMessageXP } = require('./levelhandler.js');
 
@@ -461,7 +460,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         }
     }
 
-    // ✅ STATS: Voice time tracking
     if (newState.member && !newState.member.user.bot) {
         const userId = newState.member.id;
         const guildId = newState.guild.id;
@@ -506,12 +504,10 @@ client.on('messageCreate', async m => {
         return;
     }
 
-    // ✅ STATS: XP + message count
     handleMessageXP(m, db, client).catch(err => console.error('XP Error:', err));
     const user = getUserData(m.author.id, m.guild.id);
     db.prepare('UPDATE users SET message_count = message_count + 1 WHERE user_id = ? AND guild_id = ?').run(m.author.id, m.guild.id);
 
-    // ✅ PREFIX COMMANDS (LuxyStatBot)
     if (m.content.startsWith(PREFIX)) {
         const args = m.content.slice(PREFIX.length).trim().split(/\s+/);
         const cmd = args.shift()?.toLowerCase();
@@ -622,7 +618,6 @@ client.on('messageCreate', async m => {
         if (cmd === 'levelconfig') return levelconfig.execute(m, args, db);
     }
 
-    // ✅ MAIN BOT COMMANDS
     if ((m.content.startsWith(',mine') || (m.content.startsWith(',give') && !m.content.toLowerCase().startsWith(',give item')) || m.content.startsWith(',cash')) && !m.author.bot) {
         await luxyGame.handleMessageCommand(m, config);
         return;
@@ -853,7 +848,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
     await logger.logReactionRemove(reaction, user, config);
 });
 
-// ✅ Save active VC on shutdown
 function saveActiveVC() {
     for (const [key, joinedAt] of activeVC) {
         const [userId, guildId] = key.split(/(?<=\d{17,})/);
